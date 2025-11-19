@@ -37,6 +37,7 @@ version = "0.5.0"
 edition = "2021"
 description = "Sovereign codex patcher/updater with registry-driven patchsets"
 license = "MIT"
+default-run = "codex-forksmith"
 
 [dependencies]
 anyhow = { workspace = true }
