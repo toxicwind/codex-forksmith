@@ -1,0 +1,16 @@
+version = 1
+
+[workspace]
+root = "."
+
+[repo]
+path = "vendor/codex"
+local_remote = "origin"
+local_branch = "main"
+upstream_remote = "upstream"
+upstream_branch = "main"
+
+[build]
+profile = "release"
+workspace = "codex-rs"
+binary_relpath = "codex-rs/target/release/codex"

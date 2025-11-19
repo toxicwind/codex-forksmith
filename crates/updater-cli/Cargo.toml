@@ -1,0 +1,15 @@
+[package]
+name = "codex-updater-cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow.workspace = true
+camino.workspace = true
+clap.workspace = true
+codex-core = { path = "../core" }
+codex-registry = { path = "../registry" }
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true

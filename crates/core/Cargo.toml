@@ -1,0 +1,20 @@
+[package]
+name = "codex-core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow.workspace = true
+camino.workspace = true
+chrono.workspace = true
+codex-ast-driver = { path = "../ast-driver" }
+codex-cocci-driver = { path = "../cocci-driver" }
+codex-pkg = { path = "../pkg" }
+codex-registry = { path = "../registry" }
+fs-err.workspace = true
+indicatif.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+walkdir.workspace = true

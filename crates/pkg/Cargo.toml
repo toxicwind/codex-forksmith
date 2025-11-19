@@ -1,0 +1,11 @@
+[package]
+name = "codex-pkg"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow.workspace = true
+camino.workspace = true
+fs-err.workspace = true
+walkdir.workspace = true
+zip.workspace = true
