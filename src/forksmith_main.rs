@@ -24,7 +24,11 @@ enum Commands {
     /// Show git + fork status for vendor/codex
     Status,
     /// Fetch remotes and prep for merges
-    Sync,
+    Sync {
+        /// Show what would happen without mutating the repo
+        #[arg(long, action = clap::ArgAction::SetTrue)]
+        dry_run: bool,
+    },
     /// Build codex inside vendor/codex
     Build,
     /// Run the codex binary with passthrough args
@@ -39,7 +43,7 @@ fn main() -> Result<()> {
     let cfg = ForksmithConfig::load_default()?;
     match cli.command {
         Commands::Status => status::run(&cfg),
-        Commands::Sync => sync::run(&cfg),
+        Commands::Sync { dry_run } => sync::run(&cfg, dry_run),
         Commands::Build => build::run(&cfg),
         Commands::Run { args } => run_cmd::run(&cfg, &args),
     }

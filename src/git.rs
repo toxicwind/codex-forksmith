@@ -54,6 +54,37 @@ pub fn is_clean(repo: &Path) -> Result<bool> {
     Ok(status.stdout.is_empty())
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct StatusSnapshot {
+    pub tracked: usize,
+    pub untracked: usize,
+}
+
+pub fn status_snapshot(repo: &Path) -> Result<StatusSnapshot> {
+    ensure_repo(repo)?;
+    let output = Command::new("git")
+        .args(["status", "--porcelain"])
+        .current_dir(repo)
+        .output()
+        .with_context(|| format!("checking git status in {}", repo.display()))?;
+    if !output.status.success() {
+        anyhow::bail!(
+            "git status failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+    let mut tracked = 0;
+    let mut untracked = 0;
+    for line in String::from_utf8_lossy(&output.stdout).lines() {
+        if line.starts_with("??") {
+            untracked += 1;
+        } else if !line.trim().is_empty() {
+            tracked += 1;
+        }
+    }
+    Ok(StatusSnapshot { tracked, untracked })
+}
+
 pub fn fetch(repo: &Path, remote: &str) -> Result<()> {
     run_git(repo, &["fetch", remote]).map(|_| ())
 }

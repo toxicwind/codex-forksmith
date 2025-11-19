@@ -10,6 +10,7 @@ pub fn run(cfg: &ForksmithConfig) -> Result<()> {
     git::ensure_repo(repo)?;
     let branch = git::current_branch(repo)?;
     let clean = git::is_clean(repo)?;
+    let snapshot = git::status_snapshot(repo)?;
     let local_ref = format!("{}/{}", cfg.local_remote, cfg.local_branch);
     let upstream_ref = format!("{}/{}", cfg.upstream_remote, cfg.upstream_branch);
     let head = git::head_commit(repo)?;
@@ -24,6 +25,10 @@ pub fn run(cfg: &ForksmithConfig) -> Result<()> {
     println!("branch        = {}", branch);
     println!("head          = {}", head);
     println!("clean         = {}", clean);
+    println!(
+        "dirty_counts  = tracked {} untracked {}",
+        snapshot.tracked, snapshot.untracked
+    );
     println!(
         "local_ref     = {} (ahead {}, behind {})",
         local_ref, ahead_local, behind_local

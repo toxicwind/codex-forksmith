@@ -3,14 +3,18 @@ use anyhow::{bail, Context, Result};
 use crate::fs_config::ForksmithConfig;
 use crate::git;
 
-pub fn run(cfg: &ForksmithConfig) -> Result<()> {
+pub fn run(cfg: &ForksmithConfig, dry_run: bool) -> Result<()> {
     let repo = &cfg.repo_path;
     git::ensure_repo(repo)?;
-    if !git::is_clean(repo)? {
+    let clean = git::is_clean(repo)?;
+    if !dry_run && !clean {
         bail!(
             "repo {} has local changes; commit or stash before syncing",
             repo.display()
         );
+    }
+    if dry_run && !clean {
+        println!("(dry-run) repo has local changes; would require a clean tree before syncing");
     }
     for remote in [&cfg.local_remote, &cfg.upstream_remote] {
         if git::has_remote(repo, remote)? {
@@ -28,8 +32,12 @@ pub fn run(cfg: &ForksmithConfig) -> Result<()> {
 
     let (_, behind_upstream) = git::divergence(repo, "HEAD", &upstream_ref)?;
     if behind_upstream > 0 {
-        println!("fast-forwarding to {upstream_ref} ({behind_upstream} commits)...");
-        git::fast_forward(repo, &upstream_ref)?;
+        if dry_run {
+            println!("(dry-run) would fast-forward to {upstream_ref} (+{behind_upstream})");
+        } else {
+            println!("fast-forwarding to {upstream_ref} ({behind_upstream} commits)...");
+            git::fast_forward(repo, &upstream_ref)?;
+        }
     } else {
         println!("already up to date with {upstream_ref}");
     }
