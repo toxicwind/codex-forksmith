@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use anyhow::{bail, Context, Result};
 
 use crate::fs_config::ForksmithConfig;
@@ -16,10 +18,12 @@ pub fn run(cfg: &ForksmithConfig, dry_run: bool) -> Result<()> {
     if dry_run && !clean {
         println!("(dry-run) repo has local changes; would require a clean tree before syncing");
     }
+    let mut fetched = BTreeSet::new();
     for remote in [&cfg.local_remote, &cfg.upstream_remote] {
         if git::has_remote(repo, remote)? {
             println!("fetching {remote}...");
             git::fetch(repo, remote).with_context(|| format!("fetching {remote}"))?;
+            fetched.insert(remote.to_string());
         } else {
             println!("remote {remote} missing; skipping fetch");
         }
@@ -31,12 +35,14 @@ pub fn run(cfg: &ForksmithConfig, dry_run: bool) -> Result<()> {
     println!("current branch: {branch}");
 
     let (_, behind_upstream) = git::divergence(repo, "HEAD", &upstream_ref)?;
+    let mut ff_applied = false;
     if behind_upstream > 0 {
         if dry_run {
             println!("(dry-run) would fast-forward to {upstream_ref} (+{behind_upstream})");
         } else {
             println!("fast-forwarding to {upstream_ref} ({behind_upstream} commits)...");
             git::fast_forward(repo, &upstream_ref)?;
+            ff_applied = true;
         }
     } else {
         println!("already up to date with {upstream_ref}");
@@ -49,5 +55,14 @@ pub fn run(cfg: &ForksmithConfig, dry_run: bool) -> Result<()> {
         println!("local remote {local_ref} matches HEAD");
     }
 
+    let upstream_behind_after = if ff_applied { 0 } else { behind_upstream };
+    println!(
+        "SYNC_RESULT dry_run={} fetched={} ff_applied={} behind_local={} behind_upstream={}",
+        dry_run,
+        fetched.into_iter().collect::<Vec<_>>().join(","),
+        ff_applied,
+        behind_local,
+        upstream_behind_after
+    );
     Ok(())
 }

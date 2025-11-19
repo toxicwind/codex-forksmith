@@ -1,14 +1,17 @@
-diff --git a/codex-rs/app-server-protocol/src/bin/export.rs b/codex-rs/app-server-protocol/src/bin/export.rs
-index d029ecbf..c70ad507 100644
---- a/codex-rs/app-server-protocol/src/bin/export.rs
-+++ b/codex-rs/app-server-protocol/src/bin/export.rs
-@@ -1,6 +1,6 @@
- use anyhow::Result;
- use clap::Parser;
--use std::path::PathBuf;
-+use std::path::{Path, PathBuf};
- 
- #[derive(Parser, Debug)]
+ARCHIVED: Large patch file removed from active repo.
+
+This file previously contained a multi-thousand-line patch useful to
+the legacy `codex-patcher-updater` workflow. That workflow is no
+longer part of `codex-forksmith` and keeping the large patch text in
+the repository bloats the repo and confuses the modern toolchain.
+
+If you need the original patch, restore it from the git history:
+
+     git checkout HEAD@{1} -- patches/local/tmux_exec.patch.disable
+
+Or recover it from your local backups. It's been replaced with this
+note to keep the tree tidy while preserving history.
+
  #[command(
 diff --git a/codex-rs/app-server-protocol/src/export.rs b/codex-rs/app-server-protocol/src/export.rs
 index 11296e8e..3edbd6ce 100644

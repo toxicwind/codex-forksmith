@@ -85,6 +85,22 @@ pub fn status_snapshot(repo: &Path) -> Result<StatusSnapshot> {
     Ok(StatusSnapshot { tracked, untracked })
 }
 
+pub fn has_unmerged_paths(repo: &Path) -> Result<bool> {
+    ensure_repo(repo)?;
+    let output = Command::new("git")
+        .args(["diff", "--name-only", "--diff-filter=U"])
+        .current_dir(repo)
+        .output()
+        .with_context(|| format!("checking unmerged paths in {}", repo.display()))?;
+    if !output.status.success() {
+        anyhow::bail!(
+            "git diff --diff-filter=U failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+    Ok(!String::from_utf8_lossy(&output.stdout).trim().is_empty())
+}
+
 pub fn fetch(repo: &Path, remote: &str) -> Result<()> {
     run_git(repo, &["fetch", remote]).map(|_| ())
 }

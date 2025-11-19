@@ -2,15 +2,17 @@ use std::process::{Command, Stdio};
 
 use anyhow::{Context, Result};
 
+use crate::commands::build;
 use crate::fs_config::ForksmithConfig;
 
 pub fn run(cfg: &ForksmithConfig, args: &[String]) -> Result<()> {
     let binary = cfg.repo_binary_path();
     if !binary.exists() {
-        anyhow::bail!(
-            "{} missing; run `codex-forksmith build` first",
+        println!(
+            "binary {} missing; building via `codex build` before running",
             binary.display()
         );
+        build::run(cfg)?;
     }
     let mut cmd = Command::new(&binary);
     cmd.args(args)

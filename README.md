@@ -30,6 +30,36 @@ verifies the binary defined by `binary_relpath` exists before returning.
 chain Codex invocations from scripts or AGENTS. It bails with a clear message if
 the binary has not been built yet.
 
+## Forksmith v2 control plane (codex wrapper)
+
+The Hypebrut `codex` shell command now runs `cargo run --bin codex-forksmith` in
+this repo. Subcommands:
+
+- `codex` *(no args)* prints a quick menu of common workflows and exits 0.
+- `codex status` prints workspace roots, divergence vs remotes, conflict
+  detection, and whether the compiled binary exists.
+- `codex sync [--dry-run]` fetches configured remotes and fast-forwards to the
+  upstream branch. A final `SYNC_RESULT …` line summarizes what happened.
+- `codex build` runs `cargo build --profile <profile>` in `vendor/codex` and
+  prints the artifact path.
+- `codex run -- <args>` ensures the binary exists (triggering `codex build` if
+  needed) and execs it with passthrough stdio.
+
+Example session:
+
+```
+codex status
+codex sync --dry-run
+codex build
+codex run -- --help
+```
+
+**Agents:** prefer these control-plane commands over manually invoking git or
+cargo. Use `codex status` to inspect state, `codex sync` to refresh remotes,
+`codex build` to guarantee artifacts exist, and `codex run -- …` to invoke the
+codex binary. Fall back to raw git/cargo only when a control-plane command is
+insufficient.
+
 The legacy registry/patch pipeline still lives behind
 `cargo run --bin codex-forksmith-legacy -- <command>` for historical reference,
 but the default toolchain is the new fork-aware CLI described above.

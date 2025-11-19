@@ -16,7 +16,7 @@ use fs_config::ForksmithConfig;
 )]
 struct Cli {
     #[command(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -40,11 +40,29 @@ enum Commands {
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
-    let cfg = ForksmithConfig::load_default()?;
     match cli.command {
-        Commands::Status => status::run(&cfg),
-        Commands::Sync { dry_run } => sync::run(&cfg, dry_run),
-        Commands::Build => build::run(&cfg),
-        Commands::Run { args } => run_cmd::run(&cfg, &args),
+        Some(command) => {
+            let cfg = ForksmithConfig::load_default()?;
+            match command {
+                Commands::Status => status::run(&cfg),
+                Commands::Sync { dry_run } => sync::run(&cfg, dry_run),
+                Commands::Build => build::run(&cfg),
+                Commands::Run { args } => run_cmd::run(&cfg, &args),
+            }
+        }
+        None => {
+            print_top_level_help();
+            Ok(())
+        }
     }
+}
+
+fn print_top_level_help() {
+    println!("Forksmith v2 control plane\n");
+    println!("Common workflows:");
+    println!("  codex status         # inspect workspace + vendor state");
+    println!("  codex sync           # refresh remotes (add --dry-run to preview)");
+    println!("  codex build          # build vendor/codex binary (cargo --profile release)");
+    println!("  codex run -- <args>  # run the codex binary with passthrough args\n");
+    println!("For full help: codex --help or codex help <command>.");
 }

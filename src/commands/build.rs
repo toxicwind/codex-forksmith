@@ -8,6 +8,12 @@ use crate::git;
 pub fn run(cfg: &ForksmithConfig) -> Result<()> {
     let repo = &cfg.repo_path;
     git::ensure_repo(repo)?;
+    if !git::is_clean(repo)? {
+        println!(
+            "warning: repository {} has local changes; building anyway",
+            repo.display()
+        );
+    }
     println!(
         "building codex in {} (profile {})",
         cfg.build_workspace.display(),
