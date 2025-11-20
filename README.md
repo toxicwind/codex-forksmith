@@ -1,107 +1,176 @@
 # Codex Forksmith
 
-A Rust-native fork steward for `vendor/codex`. The new `codex-forksmith`
-binary manages git status, syncing, builds, and execution of the vendored
-Codex workspace so you can treat this repo as a turnkey fork manager.
+![codex-forksmith banner](https://img.shields.io/badge/Codex-Forksmith-blue?logo=rust)
 
-## CLI
+An ergonomic, Rust-native control plane for the vendored Codex workspace.
+Codex Forksmith provides a small wrapper (`codex`) that standardizes status,
+sync, build, and run workflows so humans and automation (agents) can operate
+reliably against `vendor/codex`.
 
-```
-cargo run --bin codex-forksmith -- status   # branch, divergence, binary path
-cargo run --bin codex-forksmith -- sync     # fetch + fast-forward to upstream
-cargo run --bin codex-forksmith -- build    # cargo build --profile release
-cargo run --bin codex-forksmith -- run -- <args passed to codex>
-```
+---
 
-`status` inspects `vendor/codex` and prints:
+## Quick links
 
-- current branch, HEAD, and cleanliness
-- ahead/behind counts vs `origin/<branch>` and `upstream/<branch>`
-- whether the configured Codex binary exists
+- **CLI:** `codex` — wrapper that runs `cargo run --bin codex-forksmith` from this repo
+- **Build:** `cargo build --workspace`
+- **Tests:** `cargo test --workspace`
+- **CI:** GitHub Actions under `.github/workflows/ci.yml`
 
-`sync` fetches the configured `local_remote` and `upstream_remote`, requires a
-clean tree, then fast-forwards the working tree to the upstream ref. Any output
-clearly calls out when the local remote still needs a push.
+---
 
-`build` runs `cargo build --profile <profile>` inside `vendor/codex` and
-verifies the binary defined by `binary_relpath` exists before returning.
+## Table of contents
 
-`run -- …` executes that binary with passthrough stdin/stdout/stderr, so you can
-chain Codex invocations from scripts or AGENTS. It bails with a clear message if
-the binary has not been built yet.
+- [Codex Forksmith](#codex-forksmith)
+  - [Quick links](#quick-links)
+  - [Table of contents](#table-of-contents)
+  - [Control plane (codex)](#control-plane-codex)
+  - [Workflows](#workflows)
+  - [**Control Plane**](#control-plane)
+  - [**Workflows**](#workflows-1)
+  - [**Workspace Layout**](#workspace-layout)
+  - [**Configuration**](#configuration)
+  - [**Maintainer Notes**](#maintainer-notes)
 
-## Forksmith v2 control plane (codex wrapper)
+---
 
-The Hypebrut `codex` shell command now runs `cargo run --bin codex-forksmith` in
-this repo. Subcommands:
+## Control plane (codex)
 
-- `codex` *(no args)* prints a quick menu of common workflows and exits 0.
-- `codex status` prints workspace roots, divergence vs remotes, conflict
-  detection, and whether the compiled binary exists.
-- `codex sync [--dry-run]` fetches configured remotes and fast-forwards to the
-  upstream branch. A final `SYNC_RESULT …` line summarizes what happened.
-- `codex build` runs `cargo build --profile <profile>` in `vendor/codex` and
-  prints the artifact path.
-- `codex run -- <args>` ensures the binary exists (triggering `codex build` if
-  needed) and execs it with passthrough stdio.
+`codex` is a thin, agent-friendly control plane that exposes predictable
+operations over the vendored Codex workspace. Running `codex` with no args
+prints a short menu of common tasks and exits with status `0`. Full help is
+available via `codex --help`.
 
-Example session:
+Primary subcommands:
 
-```
+- `codex status`
+  - Inspects repository state and `vendor/codex`:
+    - current branch and HEAD
+    - working tree cleanliness
+    - ahead/behind counts vs `origin/<branch>` and `upstream/<branch>`
+    - detects merge conflicts and missing artifact
+  - Exits non‑zero only on merge conflicts or when the compiled binary is missing.
+
+- `codex sync [--dry-run]`
+  - Fetches configured remotes and applies fast-forwards when safe.
+  - Idempotent and safe to run repeatedly. When complete it prints a single
+    machine-readable summary line beginning with `SYNC_RESULT` for agent parsing.
+
+- `codex build`
+  - Runs the configured `cargo build` (by default release profile) in the
+    vendored Codex workspace and prints the artifact path.
+  - Warns if the repo is dirty but still builds.
+
+- `codex run -- <args>`
+  - Ensures the Codex binary exists (auto-runs `codex build` if missing) and
+    then execs it, inheriting stdin/stdout/stderr for clean passthrough.
+
+Use these commands in automation and agent workflows instead of invoking raw
+`git`/`cargo`—they are conservative, machine-friendly, and clearly signal
+outcomes.
+
+---
+
+## Workflows
+
+Example human session:
+
+```bash
 codex status
 codex sync --dry-run
 codex build
 codex run -- --help
 ```
 
-**Agents:** prefer these control-plane commands over manually invoking git or
-cargo. Use `codex status` to inspect state, `codex sync` to refresh remotes,
-`codex build` to guarantee artifacts exist, and `codex run -- …` to invoke the
-codex binary. Fall back to raw git/cargo only when a control-plane command is
-insufficient.
+Suggested verification locally:
 
-The legacy registry/patch pipeline still lives behind
-`cargo run --bin codex-forksmith-legacy -- <command>` for historical reference,
-but the default toolchain is the new fork-aware CLI described above.
+```bash
+cd ~/development/codex-forksmith
+<!-- prettier, lightweight README for repository landing -->
+# Codex Forksmith
 
-- `update` resets `vendor/codex`, loads the patch registry, runs ast-grep/cocci
-  rules, updates registry metadata, optionally runs `cargo build --release`, and
-  prints a machine-readable JSON summary with `--json`.
-- `doctor` reports workspace health (vendor presence, registry path, rule counts).
-- `registry` commands are the single source of truth for toggling semantic patch
-  sets so you never edit JSON manually.
+![CI](https://github.com/toxicwind/codex-forksmith/actions/workflows/ci.yml/badge.svg)
+![Rust](https://img.shields.io/badge/Rust-stable-orange?logo=rust)
+![License](https://img.shields.io/badge/License-MIT-blue)
 
-The repository already vendors upstream under `vendor/codex` via a git submodule
-pointing at `github.com/openai/codex`, so you always see the exact code the
-pipeline mutates.
+A focused, Rust-native control plane for the vendored `codex` workspace. Use
+the lightweight `codex` wrapper to inspect status, sync remotes, build the
+vendored binary, and exec it from automation or a human shell.
 
-## Workspace layout
+---
 
-This repo now owns the entire Rust toolchain that used to live in `~/crates`.
-Running `cargo metadata` shows the extra crates under `crates/`:
+## Quick Start
 
-| Crate | Purpose |
-| --- | --- |
-| `codex-ast-driver` / `codex-cocci-driver` | Hermetic adapters for ast-grep and coccinelle-for-rust. |
-| `codex-core` | Future orchestration layer that stitches drivers + registry + packaging. |
-| `codex-registry` | JSON registry helpers (the CLI still uses the bespoke format but this gives us a migration path). |
-| `codex-pkg` | Zip/packaging helper used by the experimental `codex-core`. |
-| `codex-updater-cli` | Reference CLI wiring on top of `codex-core` (kept for experimentation). |
-| `codex-wrapper` | Pure-Rust wrapper that can replace the Bash launcher under `~/.config/bash/hypebrut/bin/hb/codex`. |
+- Build everything: `cargo build --workspace`
+- Run tests: `cargo test --workspace`
+- Run the control plane: `cargo run --bin codex-forksmith -- <subcommand>`
 
-You can build everything in one pass with `cargo build --workspace`. The
-existing `codex-forksmith` binary remains the source of truth today; the
-additional crates are vendored here so we can progressively migrate features
-into them without juggling multiple repositories.
+Common shortcuts (when `codex` is installed as a local CLI wrapper):
 
-## Configuration
+```bash
+codex              # shows banner + useful workflow hints
+codex status       # inspect workspace and binary health
+codex sync --dry-run  # safe fetch + parseable SYNC_RESULT summary
+codex build        # compile vendor/codex and print artifact path
+codex run -- --help  # passthrough to compiled codex binary
+```
 
-`codex-forksmith.toml` configures the workspace:
+---
+
+## **Control Plane**
+
+`codex` exposes a small, opinionated set of commands designed for reliability
+and automation:
+
+- **status**: reports branch, cleanliness, ahead/behind, merge conflicts,
+  and whether the compiled binary exists. Exits non‑zero only on merge
+  conflicts or when the compiled binary is missing.
+- **sync [--dry-run]**: fetches remotes and fast-forwards when safe. Always
+  prints a single machine-readable `SYNC_RESULT` line describing the outcome.
+- **build**: runs `cargo build` (default: release) in the vendored workspace
+  and prints the produced artifact path; warns on a dirty tree but still builds.
+- **run -- <args>**: ensures the binary exists (auto-builds if missing), then
+  `exec`s it, inheriting stdin/stdout/stderr so output chains cleanly.
+
+Use these commands in CI or agent workflows to avoid brittle raw `git`/`cargo`
+invocations.
+
+---
+
+## **Workflows**
+
+Suggested local verification:
+
+```bash
+cd ~/development/codex-forksmith
+cargo fmt && cargo test
+codex
+codex status
+codex sync --dry-run
+codex build
+codex run -- --help
+```
+
+---
+
+## **Workspace Layout**
+
+Top-level crates live under `crates/`. Notable items:
+
+- `crates/ast-driver`, `crates/cocci-driver` — adapters used by the update pipeline
+- `crates/core` — orchestration primitives and core types
+- `crates/registry` — JSON registry helpers for patch sets
+- `crates/pkg` — packaging helpers
+- `crates/wrapper` — small wrapper/launcher
+
+To build everything: `cargo build --workspace`.
+
+---
+
+## **Configuration**
+
+Edit `codex-forksmith.toml` to change repo and build settings. Example:
 
 ```toml
-[workspace]
-root = "."
-
 [repo]
 path = "vendor/codex"
 local_remote = "origin"
@@ -111,10 +180,19 @@ upstream_branch = "main"
 
 [build]
 profile = "release"
-workspace = "codex-rs"
 binary_relpath = "codex-rs/target/release/codex"
 ```
 
-All fields are optional; sensible defaults match the layout in this repo. If
-you track a different fork branch or build profile, tweak those values and the
-CLI will respect them.
+Defaults are sensible; only override what you need.
+
+---
+
+## **Maintainer Notes**
+
+- `crates/updater-cli` and historical updater sources have been removed from
+  the active workspace. Historical files were retained for reference and have
+  now been cleaned up.
+- CI is active via `.github/workflows/ci.yml`.
+
+If you'd like additional badges or a different landing image, tell me which
+services to include and I'll add them.
