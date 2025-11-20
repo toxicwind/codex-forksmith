@@ -26,9 +26,9 @@ vendored binary, and exec it from automation or a human shell.
   - [Table of contents](#table-of-contents)
   - [Control plane (codex)](#control-plane-codex)
   - [Workflows](#workflows)
-  - [**Workspace Layout**](#workspace-layout)
-  - [**Configuration**](#configuration)
-  - [**Maintainer Notes**](#maintainer-notes)
+  - [Workspace Layout](#workspace-layout)
+  - [Configuration](#configuration)
+  - [Maintainer Notes](#maintainer-notes)
 
 ---
 
@@ -80,7 +80,7 @@ codex build
 codex run -- resume
 ```
 
-## **Workspace Layout**
+## Workspace Layout
 
 Top-level crates live under `crates/`. Notable items:
 
@@ -94,7 +94,7 @@ To build everything: `cargo build --workspace`.
 
 ---
 
-## **Configuration**
+## Configuration
 
 Edit `codex-forksmith.toml` to change repo and build settings. Example:
 
@@ -115,7 +115,7 @@ Defaults are sensible; only override what you need.
 
 ---
 
-## **Maintainer Notes**
+## Maintainer Notes
 
 - `crates/updater-cli` and historical updater sources have been removed from
   the active workspace. Historical files were retained for reference and have
