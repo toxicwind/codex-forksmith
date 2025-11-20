@@ -1,6 +1,6 @@
 # Codex Forksmith
 
-![CI](https://github.com/toxicwind/codex-forksmith/actions/workflows/ci.yml/badge.svg)
+![codex-forksmith banner](https://img.shields.io/badge/Codex-Forksmith-blue?logo=rust)
 ![Rust](https://img.shields.io/badge/Rust-stable-orange?logo=rust)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 
@@ -28,7 +28,6 @@ vendored binary, and exec it from automation or a human shell.
   - [Workflows](#workflows)
   - [Workspace Layout](#workspace-layout)
   - [Configuration](#configuration)
-  - [Maintainer Notes](#maintainer-notes)
 
 ---
 
@@ -112,12 +111,3 @@ binary_relpath = "codex-rs/target/release/codex"
 ```
 
 Defaults are sensible; only override what you need.
-
----
-
-## Maintainer Notes
-
-- `crates/updater-cli` and historical updater sources have been removed from
-  the active workspace. Historical files were retained for reference and have
-  now been cleaned up.
-- CI is active via `.github/workflows/ci.yml`.
