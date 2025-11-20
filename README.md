@@ -1,11 +1,12 @@
 # Codex Forksmith
 
-![codex-forksmith banner](https://img.shields.io/badge/Codex-Forksmith-blue?logo=rust)
+![CI](https://github.com/toxicwind/codex-forksmith/actions/workflows/ci.yml/badge.svg)
+![Rust](https://img.shields.io/badge/Rust-stable-orange?logo=rust)
+![License](https://img.shields.io/badge/License-MIT-blue)
 
-An ergonomic, Rust-native control plane for the vendored Codex workspace.
-Codex Forksmith provides a small wrapper (`codex`) that standardizes status,
-sync, build, and run workflows so humans and automation (agents) can operate
-reliably against `vendor/codex`.
+A Rust-native control plane for the vendored `codex` workspace. Use
+the lightweight `codex` wrapper to inspect status, sync remotes, build the
+vendored binary, and exec it from automation or a human shell.
 
 ---
 
