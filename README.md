@@ -25,8 +25,6 @@ reliably against `vendor/codex`.
   - [Table of contents](#table-of-contents)
   - [Control plane (codex)](#control-plane-codex)
   - [Workflows](#workflows)
-  - [**Control Plane**](#control-plane)
-  - [**Workflows**](#workflows-1)
   - [**Workspace Layout**](#workspace-layout)
   - [**Configuration**](#configuration)
   - [**Maintainer Notes**](#maintainer-notes)
@@ -78,79 +76,8 @@ Example human session:
 codex status
 codex sync --dry-run
 codex build
-codex run -- --help
+codex run -- resume
 ```
-
-Suggested verification locally:
-
-```bash
-cd ~/development/codex-forksmith
-<!-- prettier, lightweight README for repository landing -->
-# Codex Forksmith
-
-![CI](https://github.com/toxicwind/codex-forksmith/actions/workflows/ci.yml/badge.svg)
-![Rust](https://img.shields.io/badge/Rust-stable-orange?logo=rust)
-![License](https://img.shields.io/badge/License-MIT-blue)
-
-A focused, Rust-native control plane for the vendored `codex` workspace. Use
-the lightweight `codex` wrapper to inspect status, sync remotes, build the
-vendored binary, and exec it from automation or a human shell.
-
----
-
-## Quick Start
-
-- Build everything: `cargo build --workspace`
-- Run tests: `cargo test --workspace`
-- Run the control plane: `cargo run --bin codex-forksmith -- <subcommand>`
-
-Common shortcuts (when `codex` is installed as a local CLI wrapper):
-
-```bash
-codex              # shows banner + useful workflow hints
-codex status       # inspect workspace and binary health
-codex sync --dry-run  # safe fetch + parseable SYNC_RESULT summary
-codex build        # compile vendor/codex and print artifact path
-codex run -- --help  # passthrough to compiled codex binary
-```
-
----
-
-## **Control Plane**
-
-`codex` exposes a small, opinionated set of commands designed for reliability
-and automation:
-
-- **status**: reports branch, cleanliness, ahead/behind, merge conflicts,
-  and whether the compiled binary exists. Exits non‑zero only on merge
-  conflicts or when the compiled binary is missing.
-- **sync [--dry-run]**: fetches remotes and fast-forwards when safe. Always
-  prints a single machine-readable `SYNC_RESULT` line describing the outcome.
-- **build**: runs `cargo build` (default: release) in the vendored workspace
-  and prints the produced artifact path; warns on a dirty tree but still builds.
-- **run -- <args>**: ensures the binary exists (auto-builds if missing), then
-  `exec`s it, inheriting stdin/stdout/stderr so output chains cleanly.
-
-Use these commands in CI or agent workflows to avoid brittle raw `git`/`cargo`
-invocations.
-
----
-
-## **Workflows**
-
-Suggested local verification:
-
-```bash
-cd ~/development/codex-forksmith
-cargo fmt && cargo test
-codex
-codex status
-codex sync --dry-run
-codex build
-codex run -- --help
-```
-
----
 
 ## **Workspace Layout**
 
@@ -193,6 +120,3 @@ Defaults are sensible; only override what you need.
   the active workspace. Historical files were retained for reference and have
   now been cleaned up.
 - CI is active via `.github/workflows/ci.yml`.
-
-If you'd like additional badges or a different landing image, tell me which
-services to include and I'll add them.
