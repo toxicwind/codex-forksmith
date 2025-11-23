@@ -1,3 +1,6 @@
 [submodule "vendor/codex-original"]
 	path = vendor/codex-original
 	url = https://github.com/openai/codex.git
+[submodule "vendor/codex-fork-toxicwind"]
+	path = vendor/codex-fork-toxicwind
+	url = git@github.com:toxicwind/codex.git

@@ -48,19 +48,25 @@ pub fn run(cfg: &ForksmithConfig, dry_run: bool) -> Result<()> {
         println!("already up to date with {upstream_ref}");
     }
 
-    let (_, behind_local) = git::divergence(repo, "HEAD", &local_ref)?;
+    let (ahead_local, behind_local) = git::divergence(repo, "HEAD", &local_ref)?;
     if behind_local > 0 {
         println!("local remote {local_ref} is ahead by {behind_local} commit(s); push soon");
     } else {
-        println!("local remote {local_ref} matches HEAD");
+        println!("local remote {local_ref} matches or lags HEAD");
+    }
+
+    if !dry_run && ahead_local > 0 {
+        println!("pushing HEAD to {local_ref} ({ahead_local} commit(s))...");
+        git::push(repo, &cfg.local_remote, &cfg.local_branch)?;
     }
 
     let upstream_behind_after = if ff_applied { 0 } else { behind_upstream };
     println!(
-        "SYNC_RESULT dry_run={} fetched={} ff_applied={} behind_local={} behind_upstream={}",
+        "SYNC_RESULT dry_run={} fetched={} ff_applied={} ahead_local={} behind_local={} behind_upstream={}",
         dry_run,
         fetched.into_iter().collect::<Vec<_>>().join(","),
         ff_applied,
+        ahead_local,
         behind_local,
         upstream_behind_after
     );

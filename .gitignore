@@ -1,3 +1,8 @@
 target/
 **/*.rs.bk
 /vendor/codex
+/vendor/codex/
+/vendor/codex-original
+/vendor/codex-original/
+/vendor/codex-original/**
+/vendor/codex-fork-toxicwind/

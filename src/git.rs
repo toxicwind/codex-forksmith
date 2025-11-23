@@ -105,6 +105,10 @@ pub fn fetch(repo: &Path, remote: &str) -> Result<()> {
     run_git(repo, &["fetch", remote]).map(|_| ())
 }
 
+pub fn push(repo: &Path, remote: &str, branch: &str) -> Result<()> {
+    run_git(repo, &["push", remote, branch]).map(|_| ())
+}
+
 pub fn has_remote(repo: &Path, remote: &str) -> Result<bool> {
     let output = run_git(repo, &["remote"])?;
     Ok(output.lines().any(|line| line.trim() == remote))
