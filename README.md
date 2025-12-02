@@ -57,10 +57,26 @@ Primary subcommands:
   - Runs the configured `cargo build` (by default release profile) in the
     vendored Codex workspace and prints the artifact path.
   - Warns if the repo is dirty but still builds.
+  - Automatically enables `sccache` as `RUSTC_WRAPPER` when the binary is
+    available in `PATH`, dramatically reducing incremental release builds.
 
-- `codex run -- <args>`
+- `codex run -- <args>` (or simply `codex <args>`)
   - Ensures the Codex binary exists (auto-runs `codex build` if missing) and
     then execs it, inheriting stdin/stdout/stderr for clean passthrough.
+  - When you omit the explicit `run --`, the first positional argument is
+    treated as the Codex binary subcommand (e.g., `codex resume`).
+
+Loader overrides:
+
+- `codex --loader-status`
+  - Runs `status::run` via the loader, bypassing the default exec behaviour.
+- `codex --loader-sync [--loader-sync-dry-run]`
+  - Runs `sync::run` via the loader (with optional dry-run preview).
+- `codex --loader-build`
+  - Runs `build::run` via the loader.
+- `codex --loader-help`
+  - Prints the loader-friendly usage banner shown when `codex` is run without
+    arguments.
 
 Use these commands in automation and agent workflows instead of invoking raw
 `git`/`cargo`—they are conservative, machine-friendly, and clearly signal
@@ -76,8 +92,15 @@ Example human session:
 codex status
 codex sync --dry-run
 codex build
-codex run -- resume
+codex resume
 ```
+
+### Faster builds
+
+Install [`sccache`](https://github.com/mozilla/sccache) and ensure it is in
+`PATH`. `codex build` detects it automatically and sets `RUSTC_WRAPPER=sccache`,
+so subsequent builds reuse cached artifacts even in `--profile release`. Set
+`RUSTC_WRAPPER` yourself to override or disable this behavior.
 
 ## Workspace Layout
 

@@ -49,6 +49,7 @@ time = { workspace = true }
 walkdir = { workspace = true }
 notify = { workspace = true }
 pathdiff = { workspace = true }
+which = { workspace = true }
 
 [[bin]]
 name = "codex-forksmith"

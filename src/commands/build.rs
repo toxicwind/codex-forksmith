@@ -1,9 +1,10 @@
-use std::process::Command;
+use std::{env, process::Command};
 
 use anyhow::{Context, Result};
 
 use crate::fs_config::ForksmithConfig;
 use crate::git;
+use which::which;
 
 pub fn run(cfg: &ForksmithConfig) -> Result<()> {
     let repo = &cfg.repo_path;
@@ -19,11 +20,12 @@ pub fn run(cfg: &ForksmithConfig) -> Result<()> {
         cfg.build_workspace.display(),
         cfg.build_profile
     );
-    let status = Command::new("cargo")
+    let mut command = Command::new("cargo");
+    command
         .args(["build", "--profile", &cfg.build_profile])
-        .current_dir(&cfg.build_workspace)
-        .status()
-        .context("running cargo build")?;
+        .current_dir(&cfg.build_workspace);
+    configure_rustc_wrapper(&mut command);
+    let status = command.status().context("running cargo build")?;
     if !status.success() {
         anyhow::bail!("cargo build failed");
     }
@@ -33,4 +35,14 @@ pub fn run(cfg: &ForksmithConfig) -> Result<()> {
     }
     println!("built {}", binary.display());
     Ok(())
+}
+
+fn configure_rustc_wrapper(command: &mut Command) {
+    if env::var_os("RUSTC_WRAPPER").is_some() {
+        return;
+    }
+    if let Ok(sccache_path) = which("sccache") {
+        command.env("RUSTC_WRAPPER", &sccache_path);
+        println!("  using sccache via {}", sccache_path.display());
+    }
 }
