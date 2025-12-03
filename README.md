@@ -36,7 +36,9 @@ vendored binary, and exec it from automation or a human shell.
 `codex` is a thin, agent-friendly control plane that exposes predictable
 operations over the vendored Codex workspace. Running `codex` with no args now
 launches the vendored Codex binary directly; use `codex --loader-help` if you
-want the loader’s menu. Full help is available via `codex --help`.
+want the loader’s menu. Full help is available via `codex --help`. The wrapper
+automatically injects `-C <current-directory>` unless you already passed your
+own `-C/--cd`, so Codex always boots inside the directory where you launched it.
 
 Primary subcommands:
 
