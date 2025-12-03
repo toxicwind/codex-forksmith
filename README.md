@@ -34,9 +34,9 @@ vendored binary, and exec it from automation or a human shell.
 ## Control plane (codex)
 
 `codex` is a thin, agent-friendly control plane that exposes predictable
-operations over the vendored Codex workspace. Running `codex` with no args
-prints a short menu of common tasks and exits with status `0`. Full help is
-available via `codex --help`.
+operations over the vendored Codex workspace. Running `codex` with no args now
+launches the vendored Codex binary directly; use `codex --loader-help` if you
+want the loader’s menu. Full help is available via `codex --help`.
 
 Primary subcommands:
 

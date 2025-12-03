@@ -122,8 +122,8 @@ fn handle_cli(cli: Cli) -> Result<()> {
             }
         }
         None => {
-            print_top_level_help();
-            Ok(())
+            let cfg = ForksmithConfig::load_default()?;
+            run_cmd::run(&cfg, &[])
         }
     }
 }
@@ -134,11 +134,6 @@ fn run_passthrough(raw_args: &[String]) -> Result<()> {
     } else {
         Vec::new()
     };
-
-    if run_args.is_empty() {
-        print_top_level_help();
-        return Ok(());
-    }
 
     let cfg = ForksmithConfig::load_default()?;
     run_cmd::run(&cfg, &run_args)
